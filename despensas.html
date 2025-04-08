@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Despesas</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px;
+      background: linear-gradient(-45deg, #e0f7fa, #e40666, #c5cae9, #ffecb3);
+      background-size: 400% 400%;
+      animation: gradiente 15s ease infinite;
+    }
+
+    @keyframes gradiente {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #6a1b9a;
+    }
+
+    .campo {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    button {
+      background-color: #7b1fa2;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #6a1b9a;
+    }
+
+    #despesas-container .campo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .remover {
+      background-color: #d32f2f;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .remover:hover {
+      background-color: #b71c1c;
+    }
+
+    #resultado {
+      margin-top: 25px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      color: #004d40;
+    }
+
+    #grafico {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Salário e Despesas</h2>
+
+    <div class="campo">
+      <label for="salario">Salário:</label>
+      <input type="number" id="salario" placeholder="Digite seu salário" min="0">
+    </div>
+
+    <div id="despesas-container">
+      <!-- Começa vazio -->
+    </div>
+
+    <button onclick="adicionarDespesa()">+ Adicionar Despesa</button>
+    <button onclick="calcular()">Calcular</button>
+
+    <div id="resultado"></div>
+
+    <canvas id="grafico" width="400" height="250"></canvas>
+  </div>
+
+  <script>
+    let contagemDespesas = 0;
+    let chart = null;
+
+    function adicionarDespesa() {
+      contagemDespesas++;
+      const container = document.getElementById('despesas-container');
+
+      const div = document.createElement('div');
+      div.className = 'campo';
+
+      const label = document.createElement('label');
+      label.textContent = `Despesa ${contagemDespesas}:`;
+
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.className = 'despesa';
+      input.placeholder = 'Digite o valor';
+      input.min = '0';
+
+      const btnRemover = document.createElement('button');
+      btnRemover.textContent = 'Remover';
+      btnRemover.className = 'remover';
+      btnRemover.onclick = () => {
+        container.removeChild(div);
+        atualizarNumeracao();
+      };
+
+      div.appendChild(label);
+      div.appendChild(input);
+      div.appendChild(btnRemover);
+      container.appendChild(div);
+    }
+
+    function atualizarNumeracao() {
+      const labels = document.querySelectorAll('#despesas-container label');
+      labels.forEach((label, index) => {
+        label.textContent = `Despesa ${index + 1}:`;
+      });
+      contagemDespesas = labels.length;
+    }
+
+    function calcular() {
+      const salario = parseFloat(document.getElementById('salario').value) || 0;
+      const despesas = document.querySelectorAll('.despesa');
+      let totalDespesas = 0;
+
+      despesas.forEach(input => {
+        totalDespesas += parseFloat(input.value) || 0;
+      });
+
+      const saldo = salario - totalDespesas;
+
+      document.getElementById('resultado').innerText = `Saldo final: R$ ${saldo.toFixed(2)}`;
+
+      // Atualizar o gráfico
+      gerarGrafico(salario, totalDespesas, saldo);
+    }
+
+    function gerarGrafico(salario, despesas, saldo) {
+      const ctx = document.getElementById('grafico').getContext('2d');
+
+      if (chart) {
+        chart.destroy();
+      }
+
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Salário', 'Despesas', 'Saldo'],
+          datasets: [{
+            label: 'R$',
+            data: [salario, despesas, saldo],
+            backgroundColor: ['#4caf50', '#f44336', '#2196f3']
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
