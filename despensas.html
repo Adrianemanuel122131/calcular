@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Despesas</title>
+  <link rel="stylesheet" href="depensas.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Salário e Despesas</h2>
+
+    <div class="campo">
+      <label for="salario">Salário:</label>
+      <input type="number" id="salario" placeholder="Digite seu salário" min="0">
+    </div>
+
+    <div id="despesas-container">
+    </div>
+
+    <button onclick="adicionarDespesa()">+ Adicionar Despesa</button>
+    <button onclick="calcular()">Calcular</button>
+
+    <div id="resultado"></div>
+
+    <canvas id="grafico" width="400" height="250"></canvas>
+  </div>
+
+  <script src="despensas.js"></script>
+</body>
+</html>
